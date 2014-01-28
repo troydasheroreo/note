@@ -1,0 +1,41 @@
+#!/usr/bin/env perl
+
+my $name = $ARGV[0];
+my $editor ||= $ENV{EDITOR} || 'vi';
+
+my @notesDirPath = split(/:/,$ENV{NOTESDIRPATH});
+push @notesDirPath, 
+  "$ENV{HOME}/private/notes",
+  "$ENV{HOME}/Dropbox/Notes",
+  "$ENV{HOME}/Google Drive/Notes",
+  "$ENV{HOME}/Documents/Notes";
+
+if (not $name) {
+  map {-d $_ && system("find $_")} @notesDirPath;
+  exit(0);
+}
+
+my $suffix = '.md';
+my $notesDir, $note;
+
+push @notesDirPath, '.';
+
+my $def_dir;
+for (@notesDirPath) {
+  $def_dir = $_;
+  last if -d $def_dir;
+}
+
+my $note;
+for (@notesDirPath) {
+  if (-f "$_/$name$suffix") {
+    $note = "$_/$name$suffix";
+    last;
+  }
+}
+
+if (not $note) {
+  $note = "$def_dir/$name$suffix";
+}
+
+exec $editor, $note;
